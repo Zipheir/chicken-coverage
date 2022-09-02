@@ -1,3 +1,5 @@
+;;;; This is free software.  See LICENSE for copyright info.
+
 (import (chicken base)
         (chicken io)
         (chicken irregex)
