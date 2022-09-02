@@ -16,6 +16,11 @@ Since `test-group` is provided by both SRFI 64 and the CHICKEN
 
     chicken-coverage <module-file> <test-file>
 
+# Dependencies
+
+The [slib-wt-tree](https://wiki.call-cc.org/eggref/5/slib-wt-tree)
+egg is required.
+
 # Building
 
 Run `make`, then `make install` in the source directory.
