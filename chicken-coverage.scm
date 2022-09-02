@@ -4,6 +4,7 @@
         (chicken io)
         (chicken irregex)
         (chicken process-context)
+        (chicken type)
         (slib wt-tree))
 
 ;; Describes a test-group line.  May need refinement.
@@ -15,6 +16,7 @@
        "\""
        (* whitespace))))
 
+(: die (string #!rest -> noreturn))
 (define (die msg . args)
   (parameterize ((current-output-port (current-error-port)))
     (display "Error: ")
@@ -27,6 +29,7 @@
 
 ;; If 'form' is present in 'dict', then confirm it.  If it's not
 ;; present or has already been confirmed, show a warning.
+(: confirm-form ((struct wt-tree) string -> (struct wt-tree)))
 (define (confirm-form dict name)
   (assert (string? name))
   (let ((v (wt-tree/lookup dict name 'not-found)))
@@ -40,6 +43,7 @@
       ((#f) (wt-tree/add dict name #t))
       (else (warning "can't happen: invalid value in tree" v name)))))
 
+(: print-results ((struct wt-tree) -> undefined))
 (define (print-results dict)
   (define (count-unconfirmed)
     (wt-tree/fold (lambda (junk b n)
@@ -60,6 +64,7 @@
 
 ;; Read lines from 'port', searching for test-group headers.  Confirm
 ;; the names of those that look like form-specific groups.
+(: check-tests ((list-of symbol) input-port -> undefined))
 (define (check-tests forms port)
   (let lp ((line (read-line port))
            (dict (make-dict forms)))
@@ -72,6 +77,7 @@
                                (irregex-match-substring m 1)))))
           (else (lp (read-line port) dict)))))
 
+(: make-dict ((list-of symbol) -> (struct wt-tree)))
 (define (make-dict forms)
   (foldl (lambda (dict sym)
            (wt-tree/add dict (symbol->string sym) #f))
@@ -80,6 +86,7 @@
 
 ;; Try to read a (module ...) S-exp from port.  If this is successful,
 ;; try to extract the module's list of exported identifiers.
+(: read-exported-forms (input-port -> (list-of symbol)))
 (define (read-exported-forms port)
   (let ((sexp (read port)))
     (unless (and (pair? sexp) (eqv? (car sexp) 'module))
