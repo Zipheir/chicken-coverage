@@ -43,33 +43,38 @@
       ((#f) (wt-tree/add dict name #t))
       (else (warning "can't happen: invalid value in tree" v name)))))
 
-(: print-results ((struct wt-tree) -> undefined))
-(define (print-results dict)
-  (define (count-unconfirmed)
-    (wt-tree/fold (lambda (junk b n)
-                    (if b n (+ n 1)))
-                  0
-                  dict))
+(: count-unconfirmed ((struct wt-tree) -> integer))
+(define (count-unconfirmed dict)
+  (wt-tree/fold (lambda (junk b n)
+                  (if b n (+ n 1)))
+                0
+                dict))
 
+(: print-results ((struct wt-tree) integer -> undefined))
+(define (print-results dict count)
   (display "Results:\n\n")
   (wt-tree/for-each
    (lambda (name tested)
      (print name ": " (if tested "yes" "NO")))
    dict)
   (newline)
-  (case (count-unconfirmed)
+  (case count
     ((0) (display "All forms confirmed tested.\n"))
     ((1) (display "1 form unconfirmed.\n"))  ; grammar!
     (else => (cut print <> " forms unconfirmed."))))
 
 ;; Read lines from 'port', searching for test-group headers.  Confirm
 ;; the names of those that look like form-specific groups.
-(: check-tests ((list-of symbol) input-port -> undefined))
+;; Returns a boolean value indicating whether or not all forms were
+;; confirmed.
+(: check-tests ((list-of symbol) input-port -> boolean))
 (define (check-tests forms port)
   (let lp ((line (read-line port))
            (dict (make-dict forms)))
     (cond ((eof-object? line)
-           (print-results dict))
+           (let ((c (count-unconfirmed dict)))
+             (print-results dict c)
+             (zero? c)))
           ((irregex-match test-group-pattern line) =>
            (lambda (m)
              (lp (read-line port)
@@ -103,9 +108,9 @@
     (exit 1))
   (unless (= (length args) 2)
     (usage))
-  (let ((m-port (open-input-file (car args)))
-        (t-port (open-input-file (cadr args))))
-    (check-tests (read-exported-forms m-port) t-port)
+  (let* ((m-port (open-input-file (car args)))
+         (t-port (open-input-file (cadr args)))
+         (status (check-tests (read-exported-forms m-port) t-port)))
     (close-input-port m-port)
     (close-input-port t-port)
-    (exit 0)))
+    (exit (if status 0 1))))
