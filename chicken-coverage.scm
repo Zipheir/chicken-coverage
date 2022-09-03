@@ -16,17 +16,6 @@
        "\""
        (* whitespace))))
 
-(: die (string #!rest -> noreturn))
-(define (die msg . args)
-  (parameterize ((current-output-port (current-error-port)))
-    (display "Error: ")
-    (display msg)
-    (newline)
-    (display "Irritants: ")
-    (display args)
-    (newline)
-    (exit 1)))
-
 ;; If 'form' is present in 'dict', then confirm it.  If it's not
 ;; present or has already been confirmed, show a warning.
 (: confirm-form ((struct wt-tree) string -> (struct wt-tree)))
@@ -95,11 +84,11 @@
 (define (read-exported-forms port)
   (let ((sexp (read port)))
     (unless (and (pair? sexp) (eqv? (car sexp) 'module))
-      (die "Failed to read module S-exp" sexp))
+      (error "Failed to read module S-exp" sexp))
     (let ((forms (list-ref sexp 2)))
       (cond ((pair? forms) forms)
-            ((null? forms) (die "Module has no exports"))
-            (else (die "Exports must be a list" forms))))))
+            ((null? forms) (error "Module has no exports"))
+            (else (error "Exports must be a list" forms))))))
 
 (let ((args (command-line-arguments)))
   (define (usage)
