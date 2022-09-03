@@ -88,6 +88,7 @@
              (zero? c)))
           ((irregex-match test-group-pattern line) =>
            (lambda (m)
+             (assert (= 1 (irregex-match-num-submatches m)))
              (lp (read-line port)
                  (confirm-form dict
                                (irregex-match-substring m 1)))))
