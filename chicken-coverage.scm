@@ -30,7 +30,9 @@
        (warning "test group for unknown form" name)
        dict)
       ((#f) (wt-tree/add dict name #t))
-      (else (warning "can't happen: invalid value in tree" v name)))))
+      (else
+       (warning "can't happen: invalid value in tree" v name)
+       dict))))
 
 (: count-unconfirmed ((struct wt-tree) -> integer))
 (define (count-unconfirmed dict)
