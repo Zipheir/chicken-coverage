@@ -90,7 +90,7 @@
 (define (read-exported-forms port)
   (let ((sexp (read port)))
     (unless (and (pair? sexp) (eqv? (car sexp) 'module))
-      (die "Failed to read module"))
+      (die "Failed to read module S-exp" sexp))
     (let ((forms (list-ref sexp 2)))
       (cond ((pair? forms) forms)
             ((null? forms) (die "Module has no exports"))
